@@ -1,0 +1,181 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Courses</h1>
+      <button class="ttv-btn ttv-btn-primary" id="btn-add-course" onclick="openCourseModal()">
+        <i class="bi bi-plus-lg"></i> Add Course
+      </button>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="courses-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Title</th>
+              <th>Units</th>
+              <th>Level</th>
+              <th>Lecturer</th>
+              <th>Expected Students</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% courses.forEach(course => { %>
+            <tr id="course-row-<%= course.id %>">
+              <td><span class="ttv-badge ttv-badge-primary"><%= course.code %></span></td>
+              <td><%= course.title %></td>
+              <td><%= course.unit %></td>
+              <td><span class="ttv-badge ttv-badge-info">Level <%= course.level %></span></td>
+              <td><%= course.lecturer_name || 'Unassigned' %></td>
+              <td><%= course.expected_students %></td>
+              <td>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editCourse(<%= JSON.stringify(course) %>)' id="edit-course-<%= course.id %>">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteCourse(<%= course.id %>)" id="del-course-<%= course.id %>">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!courses.length) { %>
+          <div class="ttv-empty-state"><i class="bi bi-inbox"></i><p>No courses yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Course Modal -->
+<div class="ttv-modal-overlay" id="course-modal" style="display:none;">
+  <div class="ttv-modal">
+    <div class="ttv-modal-header">
+      <h3 id="course-modal-title">Add Course</h3>
+      <button class="ttv-modal-close" onclick="closeCourseModal()" id="course-modal-close">&times;</button>
+    </div>
+    <form id="course-form">
+      <input type="hidden" id="course-id">
+      <div class="ttv-form-grid">
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-code">Course Code</label>
+          <input type="text" id="course-code" class="ttv-input" placeholder="e.g. CMP101" required>
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-title">Title</label>
+          <input type="text" id="course-title" class="ttv-input" placeholder="Course title" required>
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-unit">Units</label>
+          <input type="number" id="course-unit" class="ttv-input" value="3" min="1" max="6">
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-level">Level</label>
+          <select id="course-level" class="ttv-select">
+            <option value="100">Level 100</option>
+            <option value="200">Level 200</option>
+            <option value="300">Level 300</option>
+            <option value="400">Level 400</option>
+          </select>
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-lecturer">Lecturer</label>
+          <select id="course-lecturer" class="ttv-select">
+            <option value="">— Unassigned —</option>
+            <% lecturers.forEach(l => { %>
+              <option value="<%= l.id %>"><%= l.name %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="course-students">Expected Students</label>
+          <input type="number" id="course-students" class="ttv-input" value="0" min="0">
+        </div>
+      </div>
+      <div class="ttv-modal-footer">
+        <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeCourseModal()">Cancel</button>
+        <button type="submit" class="ttv-btn ttv-btn-primary" id="course-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openCourseModal(data) {
+  document.getElementById('course-modal').style.display = 'flex';
+  document.getElementById('course-form').reset();
+  document.getElementById('course-id').value = '';
+  document.getElementById('course-modal-title').textContent = 'Add Course';
+}
+
+function closeCourseModal() {
+  document.getElementById('course-modal').style.display = 'none';
+}
+
+function editCourse(course) {
+  document.getElementById('course-modal').style.display = 'flex';
+  document.getElementById('course-modal-title').textContent = 'Edit Course';
+  document.getElementById('course-id').value = course.id;
+  document.getElementById('course-code').value = course.code;
+  document.getElementById('course-title').value = course.title;
+  document.getElementById('course-unit').value = course.unit;
+  document.getElementById('course-level').value = course.level;
+  document.getElementById('course-lecturer').value = course.lecturer_id || '';
+  document.getElementById('course-students').value = course.expected_students;
+}
+
+async function deleteCourse(id) {
+  if (!confirm('Are you sure you want to delete this course?')) return;
+  try {
+    const res = await fetch('/api/courses/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      document.getElementById('course-row-' + id).remove();
+      window.TTV.toast('Course deleted', 'success');
+    } else {
+      window.TTV.toast(data.error || 'Delete failed', 'error');
+    }
+  } catch { window.TTV.toast('Network error', 'error'); }
+}
+
+document.getElementById('course-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('course-id').value;
+  const body = {
+    code: document.getElementById('course-code').value,
+    title: document.getElementById('course-title').value,
+    unit: parseInt(document.getElementById('course-unit').value),
+    level: parseInt(document.getElementById('course-level').value),
+    lecturer_id: document.getElementById('course-lecturer').value || null,
+    expected_students: parseInt(document.getElementById('course-students').value)
+  };
+
+  try {
+    const url = id ? '/api/courses/' + id : '/api/courses';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.TTV.toast(id ? 'Course updated' : 'Course created', 'success');
+      closeCourseModal();
+      location.reload();
+    } else {
+      window.TTV.toast(data.error || 'Save failed', 'error');
+    }
+  } catch { window.TTV.toast('Network error', 'error'); }
+});
+</script>
+
+<%- include('../partials/footer') %>

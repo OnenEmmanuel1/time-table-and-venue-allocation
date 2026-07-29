@@ -1,0 +1,76 @@
+<%- include('partials/header') %>
+
+<div class="ttv-login-wrapper">
+  <div class="ttv-login-card">
+    <div class="ttv-login-header">
+      <div class="ttv-login-icon">
+        <i class="bi bi-calendar3"></i>
+      </div>
+      <h1 class="ttv-login-title">TimetablePro</h1>
+      <p class="ttv-login-subtitle">Timetable & Venue Allocation System</p>
+      <p class="ttv-login-org">Faculty of Computing, UNICROSS</p>
+    </div>
+
+    <form id="login-form" class="ttv-login-form" novalidate>
+      <div id="login-error" class="ttv-alert ttv-alert-error" style="display:none;"></div>
+
+      <div class="ttv-form-group">
+        <label for="login-email" class="ttv-label">Email Address</label>
+        <div class="ttv-input-icon-wrap">
+          <i class="bi bi-envelope"></i>
+          <input type="email" id="login-email" name="email" class="ttv-input" placeholder="you@unicross.edu.ng" required autofocus>
+        </div>
+      </div>
+
+      <div class="ttv-form-group">
+        <label for="login-password" class="ttv-label">Password</label>
+        <div class="ttv-input-icon-wrap">
+          <i class="bi bi-lock"></i>
+          <input type="password" id="login-password" name="password" class="ttv-input" placeholder="Enter your password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="ttv-btn ttv-btn-primary ttv-btn-block" id="login-submit-btn">
+        <i class="bi bi-box-arrow-in-right"></i> Sign In
+      </button>
+    </form>
+  </div>
+</div>
+
+<script>
+document.getElementById('login-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const errDiv = document.getElementById('login-error');
+  errDiv.style.display = 'none';
+
+  const email = document.getElementById('login-email').value.trim();
+  const password = document.getElementById('login-password').value;
+
+  if (!email || !password) {
+    errDiv.textContent = 'Please fill in all fields.';
+    errDiv.style.display = 'block';
+    return;
+  }
+
+  try {
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password })
+    });
+    const data = await res.json();
+
+    if (data.success) {
+      window.location.href = data.redirect;
+    } else {
+      errDiv.textContent = data.error || 'Login failed.';
+      errDiv.style.display = 'block';
+    }
+  } catch (err) {
+    errDiv.textContent = 'Network error. Please try again.';
+    errDiv.style.display = 'block';
+  }
+});
+</script>
+
+<%- include('partials/footer') %>

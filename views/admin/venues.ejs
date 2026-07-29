@@ -1,0 +1,83 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Venues</h1>
+      <button class="ttv-btn ttv-btn-primary" id="btn-add-venue" onclick="openVenueModal()">
+        <i class="bi bi-plus-lg"></i> Add Venue
+      </button>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="venues-table">
+          <thead>
+            <tr><th>Name</th><th>Capacity</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% venues.forEach(v => { %>
+            <tr id="venue-row-<%= v.id %>">
+              <td><strong><%= v.name %></strong></td>
+              <td><span class="ttv-badge ttv-badge-info"><%= v.capacity %> seats</span></td>
+              <td>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editVenue(<%= JSON.stringify(v) %>)' id="edit-venue-<%= v.id %>"><i class="bi bi-pencil"></i></button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteVenue(<%= v.id %>)" id="del-venue-<%= v.id %>"><i class="bi bi-trash"></i></button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!venues.length) { %>
+          <div class="ttv-empty-state"><i class="bi bi-inbox"></i><p>No venues yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Venue Modal -->
+<div class="ttv-modal-overlay" id="venue-modal" style="display:none;">
+  <div class="ttv-modal">
+    <div class="ttv-modal-header">
+      <h3 id="venue-modal-title">Add Venue</h3>
+      <button class="ttv-modal-close" onclick="closeVenueModal()" id="venue-modal-close">&times;</button>
+    </div>
+    <form id="venue-form">
+      <input type="hidden" id="venue-id">
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="venue-name">Venue Name</label>
+        <input type="text" id="venue-name" class="ttv-input" required>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="venue-capacity">Capacity</label>
+        <input type="number" id="venue-capacity" class="ttv-input" min="1" required>
+      </div>
+      <div class="ttv-modal-footer">
+        <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeVenueModal()">Cancel</button>
+        <button type="submit" class="ttv-btn ttv-btn-primary" id="venue-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openVenueModal() { document.getElementById('venue-modal').style.display = 'flex'; document.getElementById('venue-form').reset(); document.getElementById('venue-id').value = ''; document.getElementById('venue-modal-title').textContent = 'Add Venue'; }
+function closeVenueModal() { document.getElementById('venue-modal').style.display = 'none'; }
+function editVenue(v) { document.getElementById('venue-modal').style.display = 'flex'; document.getElementById('venue-modal-title').textContent = 'Edit Venue'; document.getElementById('venue-id').value = v.id; document.getElementById('venue-name').value = v.name; document.getElementById('venue-capacity').value = v.capacity; }
+async function deleteVenue(id) {
+  if (!confirm('Delete this venue?')) return;
+  try { const res = await fetch('/api/venues/' + id, { method: 'DELETE' }); const data = await res.json(); if (data.success) { document.getElementById('venue-row-' + id).remove(); window.TTV.toast('Venue deleted', 'success'); } else { window.TTV.toast(data.error, 'error'); } } catch { window.TTV.toast('Network error', 'error'); }
+}
+document.getElementById('venue-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('venue-id').value;
+  const body = { name: document.getElementById('venue-name').value, capacity: parseInt(document.getElementById('venue-capacity').value) };
+  try { const url = id ? '/api/venues/' + id : '/api/venues'; const method = id ? 'PUT' : 'POST'; const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const data = await res.json(); if (data.success) { window.TTV.toast(id ? 'Updated' : 'Created', 'success'); closeVenueModal(); location.reload(); } else { window.TTV.toast(data.error, 'error'); } } catch { window.TTV.toast('Network error', 'error'); }
+});
+</script>
+
+<%- include('../partials/footer') %>

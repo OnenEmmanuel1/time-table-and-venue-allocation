@@ -1,0 +1,158 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Timetable Management</h1>
+      <div class="ttv-page-actions">
+        <button class="ttv-btn ttv-btn-primary" id="btn-generate" onclick="generateTimetable()">
+          <i class="bi bi-lightning"></i> Generate Timetable
+        </button>
+      </div>
+    </div>
+
+    <!-- Status Alert -->
+    <div id="timetable-status" style="display:none;" class="ttv-alert"></div>
+
+    <!-- Filter Bar -->
+    <div class="ttv-card ttv-mb">
+      <div class="ttv-card-body">
+        <div class="ttv-filter-bar">
+          <label class="ttv-label">Group By:</label>
+          <select id="filter-group" class="ttv-select ttv-select-sm" onchange="filterGrid()">
+            <option value="all">All Levels</option>
+            <option value="100">Level 100</option>
+            <option value="200">Level 200</option>
+          </select>
+          <label class="ttv-label" style="margin-left:16px;">Status:</label>
+          <select id="filter-status" class="ttv-select ttv-select-sm" onchange="filterGrid()">
+            <option value="">All</option>
+            <option value="draft">Draft</option>
+            <option value="published">Published</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Timetable Grid -->
+    <div class="ttv-card">
+      <div class="ttv-card-header">
+        <h2 class="ttv-card-title">Schedule Grid</h2>
+      </div>
+      <div class="ttv-card-body">
+        <% const editable = true; %>
+        <%- include('../partials/timetable-grid', { entries, editable }) %>
+      </div>
+    </div>
+
+    <!-- Modify Entry Modal -->
+    <div class="ttv-modal-overlay" id="entry-modal" style="display:none;">
+      <div class="ttv-modal">
+        <div class="ttv-modal-header">
+          <h3>Modify Assignment</h3>
+          <button class="ttv-modal-close" onclick="closeEntryModal()" id="entry-modal-close">&times;</button>
+        </div>
+        <form id="entry-form">
+          <input type="hidden" id="entry-id">
+          <p id="entry-course-info" class="ttv-text-muted"></p>
+          <div class="ttv-form-group">
+            <label class="ttv-label" for="entry-timeslot">Time Slot</label>
+            <select id="entry-timeslot" class="ttv-select">
+              <% timeslots.forEach(ts => { %>
+                <option value="<%= ts.id %>"><%= ts.day %> <%= ts.start_time %>–<%= ts.end_time %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="ttv-form-group">
+            <label class="ttv-label" for="entry-venue">Venue</label>
+            <select id="entry-venue" class="ttv-select">
+              <% venues.forEach(v => { %>
+                <option value="<%= v.id %>"><%= v.name %> (Cap: <%= v.capacity %>)</option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="ttv-modal-footer">
+            <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeEntryModal()">Cancel</button>
+            <button type="submit" class="ttv-btn ttv-btn-primary" id="entry-save-btn">Save Change</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+async function generateTimetable() {
+  if (!confirm('This will replace any existing draft timetable. Continue?')) return;
+  const statusDiv = document.getElementById('timetable-status');
+  statusDiv.className = 'ttv-alert ttv-alert-info';
+  statusDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating timetable...';
+  statusDiv.style.display = 'block';
+
+  try {
+    const res = await fetch('/api/timetable/generate', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      statusDiv.className = 'ttv-alert ttv-alert-success';
+      statusDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + data.message + ' (' + data.conflictsResolved + ' conflicts resolved during generation)';
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      statusDiv.className = 'ttv-alert ttv-alert-error';
+      statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> ' + (data.message || data.error);
+    }
+  } catch {
+    statusDiv.className = 'ttv-alert ttv-alert-error';
+    statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> Network error';
+  }
+}
+
+function filterGrid() {
+  const level = document.getElementById('filter-group').value;
+  const status = document.getElementById('filter-status').value;
+  document.querySelectorAll('.ttv-grid-entry').forEach(el => {
+    let show = true;
+    if (level !== 'all') {
+      const entryLevel = el.classList.contains('ttv-level-100') ? '100' : el.classList.contains('ttv-level-200') ? '200' : 'other';
+      if (entryLevel !== level) show = false;
+    }
+    if (status) {
+      const badge = el.querySelector('.ttv-badge');
+      if (badge && badge.textContent.trim() !== status) show = false;
+    }
+    el.style.display = show ? '' : 'none';
+  });
+}
+
+/* Entry modification */
+document.querySelectorAll('.ttv-grid-entry').forEach(el => {
+  el.addEventListener('click', () => {
+    document.getElementById('entry-modal').style.display = 'flex';
+    document.getElementById('entry-id').value = el.dataset.entryId;
+    document.getElementById('entry-timeslot').value = el.dataset.timeslotId;
+    document.getElementById('entry-venue').value = el.dataset.venueId;
+    document.getElementById('entry-course-info').textContent = el.querySelector('.ttv-grid-entry-code').textContent;
+  });
+});
+
+function closeEntryModal() { document.getElementById('entry-modal').style.display = 'none'; }
+
+document.getElementById('entry-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('entry-id').value;
+  const body = {
+    time_slot_id: parseInt(document.getElementById('entry-timeslot').value),
+    venue_id: parseInt(document.getElementById('entry-venue').value)
+  };
+  try {
+    const res = await fetch('/api/timetable/entry/' + id, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.success) { window.TTV.toast(data.message, 'success'); closeEntryModal(); location.reload(); }
+    else { window.TTV.toast(data.message || data.error, 'error'); }
+  } catch { window.TTV.toast('Network error', 'error'); }
+});
+</script>
+
+<%- include('../partials/footer') %>

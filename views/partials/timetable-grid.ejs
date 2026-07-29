@@ -1,0 +1,111 @@
+<%
+/**
+ * Timetable Grid Partial
+ * Renders a day × time-slot CSS Grid with entries grouped by level/venue.
+ *
+ * Expected locals:
+ *  - entries:  Array of timetable entry objects (JOINed with course, venue, time_slot, lecturer)
+ *  - editable: Boolean — if true, cells are clickable for admin modification
+ */
+
+const days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'];
+
+/* Extract unique time ranges from entries or provide defaults */
+const timeRanges = [];
+const timeSet = new Set();
+if (entries && entries.length) {
+  entries.forEach(e => {
+    const key = e.start_time + '-' + e.end_time;
+    if (!timeSet.has(key)) {
+      timeSet.add(key);
+      timeRanges.push({ start: e.start_time, end: e.end_time });
+    }
+  });
+} else {
+  /* Default time ranges */
+  [['08:00:00','10:00:00'],['10:00:00','12:00:00'],['12:00:00','14:00:00'],['14:00:00','16:00:00']].forEach(([s,e]) => {
+    timeRanges.push({ start: s, end: e });
+  });
+}
+
+/* Sort time ranges */
+timeRanges.sort((a, b) => a.start.localeCompare(b.start));
+
+/* Helper: format time string */
+function fmtTime(t) {
+  if (!t) return '';
+  const parts = String(t).split(':');
+  const h = parseInt(parts[0]);
+  const m = parts[1];
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h > 12 ? h - 12 : (h === 0 ? 12 : h);
+  return h12 + ':' + m + ' ' + ampm;
+}
+
+/* Build lookup: key = "day|start|end" → array of entries */
+const lookup = {};
+if (entries) {
+  entries.forEach(e => {
+    const key = e.day + '|' + e.start_time + '|' + e.end_time;
+    if (!lookup[key]) lookup[key] = [];
+    lookup[key].push(e);
+  });
+}
+
+/* Determine level colors */
+function levelColor(level) {
+  if (level <= 100) return 'ttv-level-100';
+  if (level <= 200) return 'ttv-level-200';
+  if (level <= 300) return 'ttv-level-300';
+  return 'ttv-level-400';
+}
+%>
+
+<% if (!entries || entries.length === 0) { %>
+  <div class="ttv-empty-state">
+    <i class="bi bi-calendar-x"></i>
+    <p>No timetable entries found.</p>
+  </div>
+<% } else { %>
+<div class="ttv-grid-wrapper">
+  <div class="ttv-grid" id="timetable-grid">
+    <!-- Header row -->
+    <div class="ttv-grid-corner">Time / Day</div>
+    <% days.forEach(day => { %>
+      <div class="ttv-grid-day-header"><%= day %></div>
+    <% }); %>
+
+    <!-- Data rows -->
+    <% timeRanges.forEach(tr => { %>
+      <div class="ttv-grid-time-label">
+        <%= fmtTime(tr.start) %><br><%= fmtTime(tr.end) %>
+      </div>
+      <% days.forEach(day => { %>
+        <div class="ttv-grid-cell">
+          <%
+            const cellKey = day + '|' + tr.start + '|' + tr.end;
+            const cellEntries = lookup[cellKey] || [];
+          %>
+          <% cellEntries.forEach(entry => { %>
+            <div class="ttv-grid-entry <%= levelColor(entry.level) %>"
+                 data-entry-id="<%= entry.id %>"
+                 data-course-id="<%= entry.course_id %>"
+                 data-venue-id="<%= entry.venue_id %>"
+                 data-timeslot-id="<%= entry.time_slot_id %>"
+                 id="entry-<%= entry.id %>">
+              <div class="ttv-grid-entry-code"><%= entry.code %></div>
+              <div class="ttv-grid-entry-venue"><i class="bi bi-geo-alt"></i> <%= entry.venue_name %></div>
+              <div class="ttv-grid-entry-lecturer"><i class="bi bi-person"></i> <%= entry.lecturer_name || 'TBA' %></div>
+              <% if (typeof editable !== 'undefined' && editable) { %>
+                <span class="ttv-grid-entry-status ttv-badge ttv-badge-<%= entry.status === 'published' ? 'success' : 'warning' %>">
+                  <%= entry.status %>
+                </span>
+              <% } %>
+            </div>
+          <% }); %>
+        </div>
+      <% }); %>
+    <% }); %>
+  </div>
+</div>
+<% } %>

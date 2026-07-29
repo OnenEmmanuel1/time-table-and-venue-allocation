@@ -1,0 +1,53 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-hod') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-hod') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Timetable Review</h1>
+      <div class="ttv-page-actions">
+        <button class="ttv-btn ttv-btn-success" id="btn-approve" onclick="approveTimetable()">
+          <i class="bi bi-check-circle"></i> Approve & Publish
+        </button>
+      </div>
+    </div>
+
+    <div id="approve-status" style="display:none;" class="ttv-alert"></div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body">
+        <% const editable = false; %>
+        <%- include('../partials/timetable-grid', { entries, editable }) %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script>
+async function approveTimetable() {
+  if (!confirm('Approve and publish this timetable? It will become visible to lecturers and students.')) return;
+  const statusDiv = document.getElementById('approve-status');
+  try {
+    const res = await fetch('/api/timetable/approve', { method: 'POST' });
+    const data = await res.json();
+    if (data.success) {
+      statusDiv.className = 'ttv-alert ttv-alert-success';
+      statusDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + data.message;
+      statusDiv.style.display = 'block';
+      setTimeout(() => location.reload(), 1500);
+    } else {
+      statusDiv.className = 'ttv-alert ttv-alert-error';
+      statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> ' + (data.error || 'Approval failed');
+      statusDiv.style.display = 'block';
+    }
+  } catch {
+    statusDiv.className = 'ttv-alert ttv-alert-error';
+    statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> Network error';
+    statusDiv.style.display = 'block';
+  }
+}
+</script>
+
+<%- include('../partials/footer') %>

@@ -1,0 +1,35 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-student') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-student') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Welcome, <%= user.name %></h1>
+      <p class="ttv-page-subtitle">Level <%= user.level %> Student</p>
+    </div>
+
+    <div class="ttv-stats-grid ttv-stats-grid-3">
+      <div class="ttv-stat-card">
+        <div class="ttv-stat-icon ttv-stat-icon-primary"><i class="bi bi-calendar3"></i></div>
+        <div class="ttv-stat-body">
+          <div class="ttv-stat-value"><%= totalClasses %></div>
+          <div class="ttv-stat-label">Published Classes</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body">
+        <div class="ttv-quick-actions">
+          <a href="/student/timetable" class="ttv-btn ttv-btn-primary" id="stu-timetable-btn">
+            <i class="bi bi-calendar3"></i> View My Timetable
+          </a>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>

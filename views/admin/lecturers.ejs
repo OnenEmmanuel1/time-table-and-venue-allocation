@@ -1,0 +1,127 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Lecturers</h1>
+      <button class="ttv-btn ttv-btn-primary" id="btn-add-lecturer" onclick="openLecturerModal()">
+        <i class="bi bi-plus-lg"></i> Add Lecturer
+      </button>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="lecturers-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Availability</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% lecturers.forEach(lec => { %>
+            <tr id="lecturer-row-<%= lec.id %>">
+              <td><strong><%= lec.name %></strong></td>
+              <td><%= lec.email %></td>
+              <td><%= lec.availability_notes || '—' %></td>
+              <td>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editLecturer(<%= JSON.stringify(lec) %>)' id="edit-lec-<%= lec.id %>">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteLecturer(<%= lec.id %>)" id="del-lec-<%= lec.id %>">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!lecturers.length) { %>
+          <div class="ttv-empty-state"><i class="bi bi-inbox"></i><p>No lecturers yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Lecturer Modal -->
+<div class="ttv-modal-overlay" id="lecturer-modal" style="display:none;">
+  <div class="ttv-modal">
+    <div class="ttv-modal-header">
+      <h3 id="lecturer-modal-title">Add Lecturer</h3>
+      <button class="ttv-modal-close" onclick="closeLecturerModal()" id="lecturer-modal-close">&times;</button>
+    </div>
+    <form id="lecturer-form">
+      <input type="hidden" id="lecturer-id">
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="lecturer-name">Full Name</label>
+        <input type="text" id="lecturer-name" class="ttv-input" required>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="lecturer-email">Email</label>
+        <input type="email" id="lecturer-email" class="ttv-input" required>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="lecturer-availability">Availability Notes</label>
+        <textarea id="lecturer-availability" class="ttv-input" rows="3"></textarea>
+      </div>
+      <div class="ttv-modal-footer">
+        <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeLecturerModal()">Cancel</button>
+        <button type="submit" class="ttv-btn ttv-btn-primary" id="lecturer-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openLecturerModal() {
+  document.getElementById('lecturer-modal').style.display = 'flex';
+  document.getElementById('lecturer-form').reset();
+  document.getElementById('lecturer-id').value = '';
+  document.getElementById('lecturer-modal-title').textContent = 'Add Lecturer';
+}
+function closeLecturerModal() {
+  document.getElementById('lecturer-modal').style.display = 'none';
+}
+function editLecturer(lec) {
+  document.getElementById('lecturer-modal').style.display = 'flex';
+  document.getElementById('lecturer-modal-title').textContent = 'Edit Lecturer';
+  document.getElementById('lecturer-id').value = lec.id;
+  document.getElementById('lecturer-name').value = lec.name;
+  document.getElementById('lecturer-email').value = lec.email;
+  document.getElementById('lecturer-availability').value = lec.availability_notes || '';
+}
+async function deleteLecturer(id) {
+  if (!confirm('Delete this lecturer?')) return;
+  try {
+    const res = await fetch('/api/lecturers/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) { document.getElementById('lecturer-row-' + id).remove(); window.TTV.toast('Lecturer deleted', 'success'); }
+    else { window.TTV.toast(data.error, 'error'); }
+  } catch { window.TTV.toast('Network error', 'error'); }
+}
+document.getElementById('lecturer-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('lecturer-id').value;
+  const body = {
+    name: document.getElementById('lecturer-name').value,
+    email: document.getElementById('lecturer-email').value,
+    availability_notes: document.getElementById('lecturer-availability').value
+  };
+  try {
+    const url = id ? '/api/lecturers/' + id : '/api/lecturers';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+    const data = await res.json();
+    if (data.success) { window.TTV.toast(id ? 'Updated' : 'Created', 'success'); closeLecturerModal(); location.reload(); }
+    else { window.TTV.toast(data.error, 'error'); }
+  } catch { window.TTV.toast('Network error', 'error'); }
+});
+</script>
+
+<%- include('../partials/footer') %>

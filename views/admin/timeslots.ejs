@@ -1,0 +1,96 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Time Slots</h1>
+      <button class="ttv-btn ttv-btn-primary" id="btn-add-slot" onclick="openSlotModal()">
+        <i class="bi bi-plus-lg"></i> Add Time Slot
+      </button>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="timeslots-table">
+          <thead>
+            <tr><th>Day</th><th>Start Time</th><th>End Time</th><th>Actions</th></tr>
+          </thead>
+          <tbody>
+            <% timeslots.forEach(ts => { %>
+            <tr id="slot-row-<%= ts.id %>">
+              <td><span class="ttv-badge ttv-badge-primary"><%= ts.day %></span></td>
+              <td><%= ts.start_time %></td>
+              <td><%= ts.end_time %></td>
+              <td>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editSlot(<%= JSON.stringify(ts) %>)' id="edit-slot-<%= ts.id %>"><i class="bi bi-pencil"></i></button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteSlot(<%= ts.id %>)" id="del-slot-<%= ts.id %>"><i class="bi bi-trash"></i></button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!timeslots.length) { %>
+          <div class="ttv-empty-state"><i class="bi bi-inbox"></i><p>No time slots yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Time Slot Modal -->
+<div class="ttv-modal-overlay" id="slot-modal" style="display:none;">
+  <div class="ttv-modal">
+    <div class="ttv-modal-header">
+      <h3 id="slot-modal-title">Add Time Slot</h3>
+      <button class="ttv-modal-close" onclick="closeSlotModal()" id="slot-modal-close">&times;</button>
+    </div>
+    <form id="slot-form">
+      <input type="hidden" id="slot-id">
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="slot-day">Day</label>
+        <select id="slot-day" class="ttv-select">
+          <option value="Monday">Monday</option>
+          <option value="Tuesday">Tuesday</option>
+          <option value="Wednesday">Wednesday</option>
+          <option value="Thursday">Thursday</option>
+          <option value="Friday">Friday</option>
+        </select>
+      </div>
+      <div class="ttv-form-grid">
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="slot-start">Start Time</label>
+          <input type="time" id="slot-start" class="ttv-input" required>
+        </div>
+        <div class="ttv-form-group">
+          <label class="ttv-label" for="slot-end">End Time</label>
+          <input type="time" id="slot-end" class="ttv-input" required>
+        </div>
+      </div>
+      <div class="ttv-modal-footer">
+        <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeSlotModal()">Cancel</button>
+        <button type="submit" class="ttv-btn ttv-btn-primary" id="slot-save-btn">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openSlotModal() { document.getElementById('slot-modal').style.display = 'flex'; document.getElementById('slot-form').reset(); document.getElementById('slot-id').value = ''; document.getElementById('slot-modal-title').textContent = 'Add Time Slot'; }
+function closeSlotModal() { document.getElementById('slot-modal').style.display = 'none'; }
+function editSlot(ts) { document.getElementById('slot-modal').style.display = 'flex'; document.getElementById('slot-modal-title').textContent = 'Edit Time Slot'; document.getElementById('slot-id').value = ts.id; document.getElementById('slot-day').value = ts.day; document.getElementById('slot-start').value = String(ts.start_time).substring(0,5); document.getElementById('slot-end').value = String(ts.end_time).substring(0,5); }
+async function deleteSlot(id) {
+  if (!confirm('Delete this time slot?')) return;
+  try { const res = await fetch('/api/timeslots/' + id, { method: 'DELETE' }); const data = await res.json(); if (data.success) { document.getElementById('slot-row-' + id).remove(); window.TTV.toast('Deleted', 'success'); } else { window.TTV.toast(data.error, 'error'); } } catch { window.TTV.toast('Network error', 'error'); }
+}
+document.getElementById('slot-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('slot-id').value;
+  const body = { day: document.getElementById('slot-day').value, start_time: document.getElementById('slot-start').value + ':00', end_time: document.getElementById('slot-end').value + ':00' };
+  try { const url = id ? '/api/timeslots/' + id : '/api/timeslots'; const method = id ? 'PUT' : 'POST'; const res = await fetch(url, { method, headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }); const data = await res.json(); if (data.success) { window.TTV.toast(id ? 'Updated' : 'Created', 'success'); closeSlotModal(); location.reload(); } else { window.TTV.toast(data.error, 'error'); } } catch { window.TTV.toast('Network error', 'error'); }
+});
+</script>
+
+<%- include('../partials/footer') %>

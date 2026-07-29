@@ -1,0 +1,51 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <h1 class="ttv-page-title">Conflict Log</h1>
+      <p class="ttv-page-subtitle">Audit trail of all re-assignments and conflict resolutions</p>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="conflict-log-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Course</th>
+              <th>Conflict Type</th>
+              <th>Original Assignment</th>
+              <th>New Assignment / Reason</th>
+              <th>Resolved At</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% logs.forEach((log, i) => { %>
+            <tr>
+              <td><%= i + 1 %></td>
+              <td><span class="ttv-badge ttv-badge-primary"><%= log.course_code || '—' %></span></td>
+              <td>
+                <span class="ttv-badge ttv-badge-<%= log.conflict_type === 'backtrack' ? 'warning' : log.conflict_type === 'manual_reassignment' ? 'info' : 'error' %>">
+                  <%= log.conflict_type %>
+                </span>
+              </td>
+              <td class="ttv-text-mono"><%= log.original_assignment || '—' %></td>
+              <td class="ttv-text-mono"><%= log.new_assignment || '—' %></td>
+              <td><%= log.resolved_at ? new Date(log.resolved_at).toLocaleString() : '—' %></td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!logs.length) { %>
+          <div class="ttv-empty-state"><i class="bi bi-check-circle"></i><p>No conflict logs recorded yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<%- include('../partials/footer') %>
