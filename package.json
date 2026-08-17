@@ -6,7 +6,7 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "init-db   ": "node db/init.js"
+    "init-db": "node db/init.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
