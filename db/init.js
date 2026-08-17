@@ -24,9 +24,15 @@ async function initDatabase() {
 
   try {
     console.log('🔧  Creating database...');
-    await connection.query(`DROP DATABASE IF EXISTS \`${dbName}\``);
-    await connection.query(`CREATE DATABASE \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
+    await connection.query(`CREATE DATABASE IF NOT EXISTS \`${dbName}\` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci`);
     await connection.query(`USE \`${dbName}\``);
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 0`);
+    const [existingTables] = await connection.query(`SHOW TABLES`);
+    for (const row of existingTables) {
+      const tableName = Object.values(row)[0];
+      await connection.query(`DROP TABLE IF EXISTS \`${tableName}\``);
+    }
+    await connection.query(`SET FOREIGN_KEY_CHECKS = 1`);
 
     console.log('📋  Running schema...');
     const schema = fs.readFileSync(path.join(__dirname, 'schema.sql'), 'utf8');

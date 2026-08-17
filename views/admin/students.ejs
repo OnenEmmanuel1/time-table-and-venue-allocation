@@ -1,0 +1,200 @@
+<%- include('../partials/header') %>
+<%- include('../partials/navbar-admin') %>
+
+<div class="ttv-layout">
+  <%- include('../partials/sidebar-admin') %>
+
+  <main class="ttv-main">
+    <div class="ttv-page-header">
+      <div>
+        <h1 class="ttv-page-title">Students</h1>
+        <p class="ttv-page-subtitle">Manage student accounts, levels, and credentials</p>
+      </div>
+      <button class="ttv-btn ttv-btn-primary" id="btn-add-student" onclick="openStudentModal()">
+        <i data-lucide="plus"></i> Add Student
+      </button>
+    </div>
+
+    <!-- Filter Bar -->
+    <div class="ttv-card ttv-mb">
+      <div class="ttv-card-body">
+        <div class="ttv-filter-bar">
+          <label class="ttv-label" for="filter-student-level">Filter by Level:</label>
+          <select id="filter-student-level" class="ttv-select ttv-select-sm" onchange="filterStudents()">
+            <option value="all">All Levels</option>
+            <option value="100">Level 100</option>
+            <option value="200">Level 200</option>
+            <option value="300">Level 300</option>
+            <option value="400">Level 400</option>
+            <option value="500">Level 500</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="ttv-card">
+      <div class="ttv-card-body ttv-table-responsive">
+        <table class="ttv-table" id="students-table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Email</th>
+              <th>Academic Level</th>
+              <th>Enrolled Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% students.forEach(stu => { %>
+            <tr id="student-row-<%= stu.id %>" data-level="<%= stu.level %>">
+              <td><strong><%= stu.name %></strong></td>
+              <td><%= stu.email %></td>
+              <td><span class="ttv-badge ttv-badge-info">Level <%= stu.level %></span></td>
+              <td class="ttv-text-muted"><%= stu.created_at ? new Date(stu.created_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—' %></td>
+              <td>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editStudent(<%= JSON.stringify(stu) %>)' id="edit-stu-<%= stu.id %>" title="Edit Student">
+                  <i data-lucide="pencil"></i>
+                </button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteStudent(<%= stu.id %>)" id="del-stu-<%= stu.id %>" title="Delete Student">
+                  <i data-lucide="trash-2"></i>
+                </button>
+              </td>
+            </tr>
+            <% }); %>
+          </tbody>
+        </table>
+        <% if (!students.length) { %>
+          <div class="ttv-empty-state" id="students-empty"><i data-lucide="graduation-cap"></i><p>No students enrolled yet.</p></div>
+        <% } %>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Student Modal -->
+<div class="ttv-modal-overlay" id="student-modal" style="display:none;">
+  <div class="ttv-modal">
+    <div class="ttv-modal-header">
+      <h3 id="student-modal-title">Add Student</h3>
+      <button class="ttv-modal-close" onclick="closeStudentModal()" id="student-modal-close">&times;</button>
+    </div>
+    <form id="student-form">
+      <input type="hidden" id="student-id">
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="student-name">Full Name</label>
+        <input type="text" id="student-name" class="ttv-input" placeholder="e.g. John Doe" required>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="student-email">Email Address</label>
+        <input type="email" id="student-email" class="ttv-input" placeholder="e.g. student@unicross.edu.ng" required>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="student-level">Academic Level</label>
+        <select id="student-level" class="ttv-select" required>
+          <option value="100">Level 100</option>
+          <option value="200">Level 200</option>
+          <option value="300">Level 300</option>
+          <option value="400">Level 400</option>
+          <option value="500">Level 500</option>
+        </select>
+      </div>
+      <div class="ttv-form-group">
+        <label class="ttv-label" for="student-password">Password</label>
+        <input type="password" id="student-password" class="ttv-input" placeholder="Leave empty for default (password123)">
+        <small class="ttv-text-muted" style="display:block; margin-top:4px;">When editing, leave empty to keep existing password.</small>
+      </div>
+      <div class="ttv-modal-footer">
+        <button type="button" class="ttv-btn ttv-btn-secondary" onclick="closeStudentModal()">Cancel</button>
+        <button type="submit" class="ttv-btn ttv-btn-primary" id="student-save-btn">Save Student</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+function openStudentModal() {
+  document.getElementById('student-modal').style.display = 'flex';
+  document.getElementById('student-form').reset();
+  document.getElementById('student-id').value = '';
+  document.getElementById('student-modal-title').textContent = 'Add Student';
+  document.getElementById('student-password').placeholder = 'Leave empty for default (password123)';
+}
+
+function closeStudentModal() {
+  document.getElementById('student-modal').style.display = 'none';
+}
+
+function editStudent(stu) {
+  document.getElementById('student-modal').style.display = 'flex';
+  document.getElementById('student-modal-title').textContent = 'Edit Student';
+  document.getElementById('student-id').value = stu.id;
+  document.getElementById('student-name').value = stu.name;
+  document.getElementById('student-email').value = stu.email;
+  document.getElementById('student-level').value = stu.level || '100';
+  document.getElementById('student-password').value = '';
+  document.getElementById('student-password').placeholder = 'Leave empty to keep current password';
+}
+
+function filterStudents() {
+  const selectedLevel = document.getElementById('filter-student-level').value;
+  const rows = document.querySelectorAll('#students-table tbody tr');
+  rows.forEach(row => {
+    const rowLevel = row.getAttribute('data-level');
+    if (selectedLevel === 'all' || rowLevel === selectedLevel) {
+      row.style.display = '';
+    } else {
+      row.style.display = 'none';
+    }
+  });
+}
+
+async function deleteStudent(id) {
+  if (!confirm('Are you sure you want to delete this student account?')) return;
+  try {
+    const res = await fetch('/api/students/' + id, { method: 'DELETE' });
+    const data = await res.json();
+    if (data.success) {
+      const row = document.getElementById('student-row-' + id);
+      if (row) row.remove();
+      window.TTV.toast('Student account deleted successfully', 'success');
+    } else {
+      window.TTV.toast(data.error || 'Failed to delete student', 'error');
+    }
+  } catch {
+    window.TTV.toast('Network error occurred', 'error');
+  }
+}
+
+document.getElementById('student-form').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('student-id').value;
+  const body = {
+    name: document.getElementById('student-name').value,
+    email: document.getElementById('student-email').value,
+    level: parseInt(document.getElementById('student-level').value),
+    password: document.getElementById('student-password').value
+  };
+
+  try {
+    const url = id ? '/api/students/' + id : '/api/students';
+    const method = id ? 'PUT' : 'POST';
+    const res = await fetch(url, {
+      method,
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (data.success) {
+      window.TTV.toast(id ? 'Student updated successfully' : 'Student added successfully', 'success');
+      closeStudentModal();
+      location.reload();
+    } else {
+      window.TTV.toast(data.error || 'Failed to save student', 'error');
+    }
+  } catch {
+    window.TTV.toast('Network error occurred', 'error');
+  }
+});
+</script>
+
+<%- include('../partials/footer') %>

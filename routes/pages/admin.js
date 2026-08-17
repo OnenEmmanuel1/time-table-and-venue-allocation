@@ -70,6 +70,26 @@ router.get('/lecturers', async (req, res) => {
   }
 });
 
+/* ── Students management ───────────────────────── */
+router.get('/students', async (req, res) => {
+  try {
+    const [students] = await db.query(
+      `SELECT id, name, email, role, level, created_at
+       FROM users
+       WHERE role = 'student'
+       ORDER BY level ASC, name ASC`
+    );
+    res.render('admin/students', {
+      title: 'Manage Students — TimetablePro',
+      user: req.session.user,
+      students
+    });
+  } catch (err) {
+    console.error(err);
+    res.render('error', { title: 'Error', message: 'Failed to load students.', user: req.session.user });
+  }
+});
+
 /* ── Venues management ─────────────────────────── */
 router.get('/venues', async (req, res) => {
   try {

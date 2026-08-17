@@ -36,10 +36,10 @@ class TimetableEngine {
   async generateTimetable() {
     /* ── Fetch input data ─────────────────────────── */
     const [courses] = await this.db.query(
-      `SELECT c.*, l.user_id AS lecturer_user_id
+      `SELECT c.*, l.user_id AS lecturer_user_id, l.availability_notes
        FROM courses c
        LEFT JOIN lecturers l ON c.lecturer_id = l.id
-       ORDER BY c.expected_students DESC`
+       ORDER BY c.level ASC, c.expected_students DESC`
     );
 
     const [timeSlots] = await this.db.query(
@@ -61,14 +61,21 @@ class TimetableEngine {
     /* ── Clear previous draft entries ─────────────── */
     await this.db.query(`DELETE FROM timetable_entries WHERE status = 'draft'`);
 
-    /* ── Build domains (pre-filter by capacity) ───── */
+    /* ── Build domains (pre-filter by capacity with slot details) ───── */
     const domains = {};
     for (const course of courses) {
       domains[course.id] = [];
       for (const ts of timeSlots) {
         for (const venue of venues) {
           if (venue.capacity >= course.expected_students) {
-            domains[course.id].push({ timeSlotId: ts.id, venueId: venue.id });
+            domains[course.id].push({
+              timeSlotId: ts.id,
+              venueId: venue.id,
+              day: ts.day,
+              startTime: ts.start_time,
+              endTime: ts.end_time,
+              venueCapacity: venue.capacity
+            });
           }
         }
       }
@@ -82,7 +89,7 @@ class TimetableEngine {
       }
     }
 
-    /* ── Solve CSP (greedy + backtracking) ─────────── */
+    /* ── Solve CSP (heuristic day-spreading + backtracking) ─────────── */
     const assignments = {};
     const conflictsResolved = [];
     const solved = this._solve(courses, domains, assignments, 0, conflictsResolved);
@@ -146,7 +153,92 @@ class TimetableEngine {
   }
 
   /**
-   * Recursive CSP solver with backtracking.
+   * Score a candidate slot-venue assignment to spread classes across both:
+   *  1. All days of the week (Monday through Friday)
+   *  2. All time periods of the day (e.g. 08:00–10:00, 10:00–12:00, 12:00–14:00, 14:00–16:00)
+   * Lower score = higher preference.
+   * @private
+   */
+  _scoreCandidate(cand, course, assignments, courses) {
+    let score = 0;
+    let levelDayCount = 0;
+    let lecturerDayCount = 0;
+    let totalDayCount = 0;
+    let levelTimeCount = 0;
+    let totalTimeCount = 0;
+    let exactSlotCount = 0;
+
+    for (const assignedCourseId in assignments) {
+      const asgn = assignments[assignedCourseId];
+      const ac = courses.find(c => c.id == assignedCourseId);
+
+      // Day-level metrics
+      if (asgn.day === cand.day) {
+        totalDayCount++;
+        if (ac && ac.level === course.level) {
+          levelDayCount++;
+        }
+        if (ac && course.lecturer_id && ac.lecturer_id === course.lecturer_id) {
+          lecturerDayCount++;
+        }
+      }
+
+      // Time-period metrics (e.g. 08:00, 10:00, 12:00, 14:00)
+      if (asgn.startTime === cand.startTime) {
+        totalTimeCount++;
+        if (ac && ac.level === course.level) {
+          levelTimeCount++;
+        }
+      }
+
+      // Exact day + time slot metric
+      if (asgn.timeSlotId === cand.timeSlotId) {
+        exactSlotCount++;
+      }
+    }
+
+    // 1. Level-day spread: Distribute each level across different days of the week (Mon–Fri)
+    score += levelDayCount * 1200;
+
+    // 2. Level-time spread: Distribute each level across different time periods of the day
+    score += levelTimeCount * 400;
+
+    // 3. Lecturer-day spread: Distribute lecturer teaching load across different days
+    score += lecturerDayCount * 500;
+
+    // 4. Faculty-wide day load: Spread overall room utilization across Monday–Friday
+    score += totalDayCount * 30;
+
+    // 5. Faculty-wide time period spread: Utilize 08:00, 10:00, 12:00, 14:00 evenly
+    score += totalTimeCount * 25;
+
+    // 6. Exact slot load (number of simultaneous classes across all venues in this slot)
+    score += exactSlotCount * 15;
+
+    // 7. Lecturer availability notes check (e.g. "Not available on Wednesdays")
+    if (course.availability_notes && typeof course.availability_notes === 'string') {
+      const notes = course.availability_notes.toLowerCase();
+      const dayLower = cand.day.toLowerCase();
+      if (notes.includes('not available on ' + dayLower) ||
+          notes.includes('no ' + dayLower) ||
+          notes.includes('unavailable on ' + dayLower) ||
+          notes.includes('unavailable ' + dayLower) ||
+          (notes.includes('not available') && notes.includes(dayLower))) {
+        score += 20000; // Heavily penalize unavailable day
+      }
+    }
+
+    // 8. Optimal venue capacity fit (avoid wasting huge halls on tiny classes)
+    if (cand.venueCapacity) {
+      const waste = cand.venueCapacity - (course.expected_students || 0);
+      score += Math.max(0, waste) * 0.01;
+    }
+
+    return score;
+  }
+
+  /**
+   * Recursive CSP solver with day-balancing candidate ordering and backtracking.
    * @private
    */
   _solve(courses, domains, assignments, index, conflictsResolved) {
@@ -155,7 +247,14 @@ class TimetableEngine {
     const course = courses[index];
     const domain = domains[course.id];
 
-    for (const candidate of domain) {
+    // Sort candidate assignments dynamically to favor week-spanning balance
+    const sortedCandidates = [...domain].sort((a, b) => {
+      const scoreA = this._scoreCandidate(a, course, assignments, courses);
+      const scoreB = this._scoreCandidate(b, course, assignments, courses);
+      return scoreA - scoreB;
+    });
+
+    for (const candidate of sortedCandidates) {
       if (this._isConsistent(course, candidate, assignments, courses)) {
         assignments[course.id] = candidate;
 
@@ -169,7 +268,7 @@ class TimetableEngine {
           courseCode: course.code,
           type: 'backtrack',
           original: JSON.stringify(candidate),
-          message: `Backtracked ${course.code} from timeSlot=${candidate.timeSlotId}, venue=${candidate.venueId}`
+          message: `Backtracked ${course.code} from day=${candidate.day} timeSlot=${candidate.timeSlotId}, venue=${candidate.venueId}`
         });
         delete assignments[course.id];
       }
@@ -461,13 +560,14 @@ class TimetableEngine {
   async getStats() {
     const [[{ totalCourses }]]    = await this.db.query('SELECT COUNT(*) AS totalCourses FROM courses');
     const [[{ totalLecturers }]]  = await this.db.query('SELECT COUNT(*) AS totalLecturers FROM lecturers');
+    const [[{ totalStudents }]]   = await this.db.query("SELECT COUNT(*) AS totalStudents FROM users WHERE role = 'student'");
     const [[{ totalVenues }]]     = await this.db.query('SELECT COUNT(*) AS totalVenues FROM venues');
     const [[{ totalSlots }]]      = await this.db.query('SELECT COUNT(*) AS totalSlots FROM time_slots');
     const [[{ draftEntries }]]    = await this.db.query(`SELECT COUNT(*) AS draftEntries FROM timetable_entries WHERE status='draft'`);
     const [[{ publishedEntries }]]= await this.db.query(`SELECT COUNT(*) AS publishedEntries FROM timetable_entries WHERE status='published'`);
     const [[{ totalConflicts }]]  = await this.db.query('SELECT COUNT(*) AS totalConflicts FROM conflict_logs');
 
-    return { totalCourses, totalLecturers, totalVenues, totalSlots, draftEntries, publishedEntries, totalConflicts };
+    return { totalCourses, totalLecturers, totalStudents, totalVenues, totalSlots, draftEntries, publishedEntries, totalConflicts };
   }
 }
 

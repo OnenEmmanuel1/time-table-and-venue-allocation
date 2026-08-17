@@ -11,7 +11,7 @@
     </div>
 
     <!-- Stats Grid -->
-    <div class="ttv-stats-grid">
+    <div class="ttv-stats-grid ttv-stats-grid-5">
       <div class="ttv-stat-card" id="stat-courses">
         <div class="ttv-stat-icon ttv-stat-icon-primary"><i data-lucide="book"></i></div>
         <div class="ttv-stat-body">
@@ -24,6 +24,13 @@
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalLecturers %></div>
           <div class="ttv-stat-label">Lecturers</div>
+        </div>
+      </div>
+      <div class="ttv-stat-card" id="stat-students">
+        <div class="ttv-stat-icon ttv-stat-icon-info" style="background: #EDE9FE; color: #7C3AED;"><i data-lucide="graduation-cap"></i></div>
+        <div class="ttv-stat-body">
+          <div class="ttv-stat-value"><%= stats.totalStudents || 0 %></div>
+          <div class="ttv-stat-label">Students</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-venues">
@@ -76,6 +83,9 @@
         <div class="ttv-quick-actions">
           <a href="/admin/courses" class="ttv-btn ttv-btn-primary" id="quick-courses">
             <i data-lucide="book"></i> Manage Courses
+          </a>
+          <a href="/admin/students" class="ttv-btn ttv-btn-primary" id="quick-students" style="background:#7C3AED;">
+            <i data-lucide="graduation-cap"></i> Manage Students
           </a>
           <a href="/admin/timetable" class="ttv-btn ttv-btn-info" id="quick-timetable">
             <i data-lucide="calendar"></i> View Timetable

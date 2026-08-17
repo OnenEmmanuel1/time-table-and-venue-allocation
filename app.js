@@ -41,6 +41,7 @@ app.use('/student',  require('./routes/pages/student'));
 app.use('/api/auth',      require('./routes/api/auth'));
 app.use('/api/courses',   require('./routes/api/courses'));
 app.use('/api/lecturers', require('./routes/api/lecturers'));
+app.use('/api/students',  require('./routes/api/students'));
 app.use('/api/venues',    require('./routes/api/venues'));
 app.use('/api/timeslots', require('./routes/api/timeslots'));
 app.use('/api/timetable', require('./routes/api/timetable'));
@@ -66,6 +67,10 @@ app.use((err, req, res, next) => {
 
 /* ── Start Server ──────────────────────────────── */
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-  console.log(`\n  ⚡ TimetablePro running on http://localhost:${PORT}\n`);
-});
+if (require.main === module) {
+  app.listen(PORT, () => {
+    console.log(`\n  ⚡ TimetablePro running on http://localhost:${PORT}\n`);
+  });
+}
+
+module.exports = app;

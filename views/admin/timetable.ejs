@@ -9,7 +9,7 @@
       <h1 class="ttv-page-title">Timetable Management</h1>
       <div class="ttv-page-actions">
         <button class="ttv-btn ttv-btn-primary" id="btn-generate" onclick="generateTimetable()">
-          <i data-lucide="circle"></i> Generate Timetable
+          <i data-lucide="sparkles"></i> Generate Timetable
         </button>
       </div>
     </div>
@@ -89,8 +89,9 @@ async function generateTimetable() {
   if (!confirm('This will replace any existing draft timetable. Continue?')) return;
   const statusDiv = document.getElementById('timetable-status');
   statusDiv.className = 'ttv-alert ttv-alert-info';
-  statusDiv.innerHTML = '<i data-lucide="circle"></i> Generating timetable...';
-  statusDiv.style.display = 'block';
+  statusDiv.innerHTML = '<i data-lucide="loader-2" class="ttv-spin"></i> Generating timetable across the week...';
+  statusDiv.style.display = 'flex';
+  if (window.lucide) lucide.createIcons();
 
   try {
     const res = await fetch('/api/timetable/generate', { method: 'POST' });
@@ -98,14 +99,17 @@ async function generateTimetable() {
     if (data.success) {
       statusDiv.className = 'ttv-alert ttv-alert-success';
       statusDiv.innerHTML = '<i data-lucide="check-circle"></i> ' + data.message + ' (' + data.conflictsResolved + ' conflicts resolved during generation)';
+      if (window.lucide) lucide.createIcons();
       setTimeout(() => location.reload(), 1500);
     } else {
       statusDiv.className = 'ttv-alert ttv-alert-error';
-      statusDiv.innerHTML = '<i data-lucide="x-circle"></i> ' + (data.message || data.error);
+      statusDiv.innerHTML = '<i data-lucide="alert-circle"></i> ' + (data.message || data.error);
+      if (window.lucide) lucide.createIcons();
     }
   } catch {
     statusDiv.className = 'ttv-alert ttv-alert-error';
-    statusDiv.innerHTML = '<i data-lucide="x-circle"></i> Network error';
+    statusDiv.innerHTML = '<i data-lucide="alert-circle"></i> Network error';
+    if (window.lucide) lucide.createIcons();
   }
 }
 

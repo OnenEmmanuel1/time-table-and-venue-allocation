@@ -44,11 +44,17 @@
   /* ── Initialize ──────────────────────────────── */
   document.addEventListener('DOMContentLoaded', () => {
     setActiveSidebarLink();
+    if (window.lucide) {
+      window.lucide.createIcons();
+    }
   });
 
   /* ── Expose globals ──────────────────────────── */
   window.TTV = {
     toast,
-    confirmAction
+    confirmAction,
+    refreshIcons: () => {
+      if (window.lucide) window.lucide.createIcons();
+    }
   };
 })();
