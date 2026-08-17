@@ -1,137 +1,113 @@
 <%- include('partials/header') %>
 
-<div class="ttv-login-wrapper">
-  <div class="ttv-login-card">
-    <div class="ttv-login-header">
-      <div class="ttv-login-icon">
-        <i data-lucide="calendar-range"></i>
+  <div class="ttv-login-wrapper">
+    <div class="ttv-login-card">
+      <div class="ttv-login-header">
+        <div class="ttv-login-icon">
+          <i data-lucide="calendar-range"></i>
+        </div>
+        <h1 class="ttv-login-title">TimetablePro</h1>
+        <p class="ttv-login-subtitle">Timetable & Venue Allocation System</p>
+        <div class="ttv-login-org-badge">
+          <i data-lucide="building-2"></i> Faculty of Computing, UNICROSS
+        </div>
       </div>
-      <h1 class="ttv-login-title">TimetablePro</h1>
-      <p class="ttv-login-subtitle">Timetable & Venue Allocation System</p>
-      <div class="ttv-login-org-badge">
-        <i data-lucide="building-2"></i> Faculty of Computing, UNICROSS
-      </div>
+
+      <form id="login-form" class="ttv-login-form" novalidate>
+        <div id="login-error" class="ttv-alert ttv-alert-error" style="display:none;"></div>
+
+        <div class="ttv-form-group">
+          <label for="login-email" class="ttv-label">Email Address</label>
+          <div class="ttv-input-icon-wrap">
+            <i data-lucide="mail" class="ttv-input-icon"></i>
+            <input type="email" id="login-email" name="email" class="ttv-input" placeholder="you@unicross.edu.ng"
+              required autofocus>
+          </div>
+        </div>
+
+        <div class="ttv-form-group">
+          <label for="login-password" class="ttv-label">Password</label>
+          <div class="ttv-input-icon-wrap">
+            <i data-lucide="lock" class="ttv-input-icon"></i>
+            <input type="password" id="login-password" name="password" class="ttv-input"
+              placeholder="Enter your password" required>
+            <button type="button" class="ttv-password-toggle" id="btn-toggle-pwd" onclick="togglePasswordVisibility()"
+              aria-label="Toggle password visibility" title="Show/Hide Password">
+              <i data-lucide="eye" id="toggle-pwd-icon"></i>
+            </button>
+          </div>
+        </div>
+
+        <button type="submit" class="ttv-btn ttv-btn-primary ttv-btn-block ttv-btn-lg" id="login-submit-btn">
+          <span>Sign In</span>
+          <i data-lucide="arrow-right"></i>
+        </button>
+      </form>
     </div>
-
-    <form id="login-form" class="ttv-login-form" novalidate>
-      <div id="login-error" class="ttv-alert ttv-alert-error" style="display:none;"></div>
-
-      <div class="ttv-form-group">
-        <label for="login-email" class="ttv-label">Email Address</label>
-        <div class="ttv-input-icon-wrap">
-          <i data-lucide="mail" class="ttv-input-icon"></i>
-          <input type="email" id="login-email" name="email" class="ttv-input" placeholder="you@unicross.edu.ng" required autofocus>
-        </div>
-      </div>
-
-      <div class="ttv-form-group">
-        <label for="login-password" class="ttv-label">Password</label>
-        <div class="ttv-input-icon-wrap">
-          <i data-lucide="lock" class="ttv-input-icon"></i>
-          <input type="password" id="login-password" name="password" class="ttv-input" placeholder="Enter your password" required>
-          <button type="button" class="ttv-password-toggle" id="btn-toggle-pwd" onclick="togglePasswordVisibility()" aria-label="Toggle password visibility" title="Show/Hide Password">
-            <i data-lucide="eye" id="toggle-pwd-icon"></i>
-          </button>
-        </div>
-      </div>
-
-      <button type="submit" class="ttv-btn ttv-btn-primary ttv-btn-block ttv-btn-lg" id="login-submit-btn">
-        <span>Sign In</span>
-        <i data-lucide="arrow-right"></i>
-      </button>
-
-      <!-- Quick Demo Login Helpers -->
-      <div class="ttv-demo-accounts">
-        <div class="ttv-demo-header">
-          <span>Quick Login Demo:</span>
-        </div>
-        <div class="ttv-demo-pills">
-          <button type="button" class="ttv-demo-pill" onclick="fillCredentials('admin@unicross.edu.ng', 'password123')">
-            <i data-lucide="shield"></i> Admin
-          </button>
-          <button type="button" class="ttv-demo-pill" onclick="fillCredentials('hod@unicross.edu.ng', 'password123')">
-            <i data-lucide="award"></i> HOD
-          </button>
-          <button type="button" class="ttv-demo-pill" onclick="fillCredentials('lecturer1@unicross.edu.ng', 'password123')">
-            <i data-lucide="user-check"></i> Lecturer
-          </button>
-          <button type="button" class="ttv-demo-pill" onclick="fillCredentials('student1@unicross.edu.ng', 'password123')">
-            <i data-lucide="graduation-cap"></i> Student
-          </button>
-        </div>
-      </div>
-    </form>
   </div>
-</div>
 
-<script>
-function fillCredentials(email, pwd) {
-  document.getElementById('login-email').value = email;
-  document.getElementById('login-password').value = pwd;
-  document.getElementById('login-error').style.display = 'none';
-  document.getElementById('login-submit-btn').focus();
-}
+  <script>
 
-function togglePasswordVisibility() {
-  const pwdInput = document.getElementById('login-password');
-  const icon = document.getElementById('toggle-pwd-icon');
-  if (pwdInput.type === 'password') {
-    pwdInput.type = 'text';
-    icon.setAttribute('data-lucide', 'eye-off');
-  } else {
-    pwdInput.type = 'password';
-    icon.setAttribute('data-lucide', 'eye');
-  }
-  if (window.lucide) {
-    lucide.createIcons();
-  }
-}
-
-document.getElementById('login-form').addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const errDiv = document.getElementById('login-error');
-  errDiv.style.display = 'none';
-
-  const email = document.getElementById('login-email').value.trim();
-  const password = document.getElementById('login-password').value;
-
-  if (!email || !password) {
-    errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>Please fill in all fields.</span>';
-    errDiv.style.display = 'flex';
-    if (window.lucide) lucide.createIcons();
-    return;
-  }
-
-  const submitBtn = document.getElementById('login-submit-btn');
-  const originalBtnContent = submitBtn.innerHTML;
-  submitBtn.disabled = true;
-  submitBtn.innerHTML = '<span>Signing In...</span>';
-
-  try {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password })
-    });
-    const data = await res.json();
-
-    if (data.success) {
-      window.location.href = data.redirect;
-    } else {
-      errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>' + (data.error || 'Login failed.') + '</span>';
-      errDiv.style.display = 'flex';
-      submitBtn.disabled = false;
-      submitBtn.innerHTML = originalBtnContent;
-      if (window.lucide) lucide.createIcons();
+    function togglePasswordVisibility() {
+      const pwdInput = document.getElementById('login-password');
+      const icon = document.getElementById('toggle-pwd-icon');
+      if (pwdInput.type === 'password') {
+        pwdInput.type = 'text';
+        icon.setAttribute('data-lucide', 'eye-off');
+      } else {
+        pwdInput.type = 'password';
+        icon.setAttribute('data-lucide', 'eye');
+      }
+      if (window.lucide) {
+        lucide.createIcons();
+      }
     }
-  } catch (err) {
-    errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>Network error. Please try again.</span>';
-    errDiv.style.display = 'flex';
-    submitBtn.disabled = false;
-    submitBtn.innerHTML = originalBtnContent;
-    if (window.lucide) lucide.createIcons();
-  }
-});
-</script>
 
-<%- include('partials/footer') %>
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const errDiv = document.getElementById('login-error');
+      errDiv.style.display = 'none';
+
+      const email = document.getElementById('login-email').value.trim();
+      const password = document.getElementById('login-password').value;
+
+      if (!email || !password) {
+        errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>Please fill in all fields.</span>';
+        errDiv.style.display = 'flex';
+        if (window.lucide) lucide.createIcons();
+        return;
+      }
+
+      const submitBtn = document.getElementById('login-submit-btn');
+      const originalBtnContent = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Signing In...</span>';
+
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await res.json();
+
+        if (data.success) {
+          window.location.href = data.redirect;
+        } else {
+          errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>' + (data.error || 'Login failed.') + '</span>';
+          errDiv.style.display = 'flex';
+          submitBtn.disabled = false;
+          submitBtn.innerHTML = originalBtnContent;
+          if (window.lucide) lucide.createIcons();
+        }
+      } catch (err) {
+        errDiv.innerHTML = '<i data-lucide="alert-circle"></i><span>Network error. Please try again.</span>';
+        errDiv.style.display = 'flex';
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnContent;
+        if (window.lucide) lucide.createIcons();
+      }
+    });
+  </script>
+
+  <%- include('partials/footer') %>
