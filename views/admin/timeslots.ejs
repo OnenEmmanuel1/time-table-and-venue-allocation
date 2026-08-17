@@ -8,7 +8,7 @@
     <div class="ttv-page-header">
       <h1 class="ttv-page-title">Time Slots</h1>
       <button class="ttv-btn ttv-btn-primary" id="btn-add-slot" onclick="openSlotModal()">
-        <i class="bi bi-plus-lg"></i> Add Time Slot
+        <i data-lucide="plus"></i> Add Time Slot
       </button>
     </div>
 
@@ -25,15 +25,15 @@
               <td><%= ts.start_time %></td>
               <td><%= ts.end_time %></td>
               <td>
-                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editSlot(<%= JSON.stringify(ts) %>)' id="edit-slot-<%= ts.id %>"><i class="bi bi-pencil"></i></button>
-                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteSlot(<%= ts.id %>)" id="del-slot-<%= ts.id %>"><i class="bi bi-trash"></i></button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-secondary" onclick='editSlot(<%= JSON.stringify(ts) %>)' id="edit-slot-<%= ts.id %>"><i data-lucide="pencil"></i></button>
+                <button class="ttv-btn ttv-btn-sm ttv-btn-danger" onclick="deleteSlot(<%= ts.id %>)" id="del-slot-<%= ts.id %>"><i data-lucide="trash-2"></i></button>
               </td>
             </tr>
             <% }); %>
           </tbody>
         </table>
         <% if (!timeslots.length) { %>
-          <div class="ttv-empty-state"><i class="bi bi-inbox"></i><p>No time slots yet.</p></div>
+          <div class="ttv-empty-state"><i data-lucide="circle"></i><p>No time slots yet.</p></div>
         <% } %>
       </div>
     </div>

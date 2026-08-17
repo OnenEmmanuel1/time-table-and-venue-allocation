@@ -9,7 +9,7 @@
       <h1 class="ttv-page-title">Timetable Review</h1>
       <div class="ttv-page-actions">
         <button class="ttv-btn ttv-btn-success" id="btn-approve" onclick="approveTimetable()">
-          <i class="bi bi-check-circle"></i> Approve & Publish
+          <i data-lucide="check-circle"></i> Approve & Publish
         </button>
       </div>
     </div>
@@ -34,17 +34,17 @@ async function approveTimetable() {
     const data = await res.json();
     if (data.success) {
       statusDiv.className = 'ttv-alert ttv-alert-success';
-      statusDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + data.message;
+      statusDiv.innerHTML = '<i data-lucide="check-circle"></i> ' + data.message;
       statusDiv.style.display = 'block';
       setTimeout(() => location.reload(), 1500);
     } else {
       statusDiv.className = 'ttv-alert ttv-alert-error';
-      statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> ' + (data.error || 'Approval failed');
+      statusDiv.innerHTML = '<i data-lucide="x-circle"></i> ' + (data.error || 'Approval failed');
       statusDiv.style.display = 'block';
     }
   } catch {
     statusDiv.className = 'ttv-alert ttv-alert-error';
-    statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> Network error';
+    statusDiv.innerHTML = '<i data-lucide="x-circle"></i> Network error';
     statusDiv.style.display = 'block';
   }
 }

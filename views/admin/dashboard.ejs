@@ -13,28 +13,28 @@
     <!-- Stats Grid -->
     <div class="ttv-stats-grid">
       <div class="ttv-stat-card" id="stat-courses">
-        <div class="ttv-stat-icon ttv-stat-icon-primary"><i class="bi bi-book"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-primary"><i data-lucide="book"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalCourses %></div>
           <div class="ttv-stat-label">Courses</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-lecturers">
-        <div class="ttv-stat-icon ttv-stat-icon-info"><i class="bi bi-people"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-info"><i data-lucide="users"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalLecturers %></div>
           <div class="ttv-stat-label">Lecturers</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-venues">
-        <div class="ttv-stat-icon ttv-stat-icon-success"><i class="bi bi-building"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-success"><i data-lucide="building"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalVenues %></div>
           <div class="ttv-stat-label">Venues</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-slots">
-        <div class="ttv-stat-icon ttv-stat-icon-warning"><i class="bi bi-clock"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-warning"><i data-lucide="clock"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalSlots %></div>
           <div class="ttv-stat-label">Time Slots</div>
@@ -45,21 +45,21 @@
     <!-- Timetable Status -->
     <div class="ttv-stats-grid ttv-stats-grid-3">
       <div class="ttv-stat-card" id="stat-draft">
-        <div class="ttv-stat-icon ttv-stat-icon-warning"><i class="bi bi-pencil-square"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-warning"><i data-lucide="edit"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.draftEntries %></div>
           <div class="ttv-stat-label">Draft Entries</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-published">
-        <div class="ttv-stat-icon ttv-stat-icon-success"><i class="bi bi-check-circle"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-success"><i data-lucide="check-circle"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.publishedEntries %></div>
           <div class="ttv-stat-label">Published Entries</div>
         </div>
       </div>
       <div class="ttv-stat-card" id="stat-conflicts">
-        <div class="ttv-stat-icon ttv-stat-icon-error"><i class="bi bi-exclamation-triangle"></i></div>
+        <div class="ttv-stat-icon ttv-stat-icon-error"><i data-lucide="alert-triangle"></i></div>
         <div class="ttv-stat-body">
           <div class="ttv-stat-value"><%= stats.totalConflicts %></div>
           <div class="ttv-stat-label">Conflicts Resolved</div>
@@ -75,13 +75,13 @@
       <div class="ttv-card-body">
         <div class="ttv-quick-actions">
           <a href="/admin/courses" class="ttv-btn ttv-btn-primary" id="quick-courses">
-            <i class="bi bi-book"></i> Manage Courses
+            <i data-lucide="book"></i> Manage Courses
           </a>
           <a href="/admin/timetable" class="ttv-btn ttv-btn-info" id="quick-timetable">
-            <i class="bi bi-calendar3"></i> View Timetable
+            <i data-lucide="calendar"></i> View Timetable
           </a>
           <a href="/admin/conflicts" class="ttv-btn ttv-btn-secondary" id="quick-conflicts">
-            <i class="bi bi-exclamation-triangle"></i> Conflict Log
+            <i data-lucide="alert-triangle"></i> Conflict Log
           </a>
         </div>
       </div>

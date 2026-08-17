@@ -63,7 +63,7 @@ function levelColor(level) {
 
 <% if (!entries || entries.length === 0) { %>
   <div class="ttv-empty-state">
-    <i class="bi bi-calendar-x"></i>
+    <i data-lucide="calendar-x"></i>
     <p>No timetable entries found.</p>
   </div>
 <% } else { %>
@@ -94,8 +94,8 @@ function levelColor(level) {
                  data-timeslot-id="<%= entry.time_slot_id %>"
                  id="entry-<%= entry.id %>">
               <div class="ttv-grid-entry-code"><%= entry.code %></div>
-              <div class="ttv-grid-entry-venue"><i class="bi bi-geo-alt"></i> <%= entry.venue_name %></div>
-              <div class="ttv-grid-entry-lecturer"><i class="bi bi-person"></i> <%= entry.lecturer_name || 'TBA' %></div>
+              <div class="ttv-grid-entry-venue"><i data-lucide="map-pin"></i> <%= entry.venue_name %></div>
+              <div class="ttv-grid-entry-lecturer"><i data-lucide="user"></i> <%= entry.lecturer_name || 'TBA' %></div>
               <% if (typeof editable !== 'undefined' && editable) { %>
                 <span class="ttv-grid-entry-status ttv-badge ttv-badge-<%= entry.status === 'published' ? 'success' : 'warning' %>">
                   <%= entry.status %>

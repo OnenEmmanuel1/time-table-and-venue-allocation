@@ -9,7 +9,7 @@
       <h1 class="ttv-page-title">Timetable Management</h1>
       <div class="ttv-page-actions">
         <button class="ttv-btn ttv-btn-primary" id="btn-generate" onclick="generateTimetable()">
-          <i class="bi bi-lightning"></i> Generate Timetable
+          <i data-lucide="circle"></i> Generate Timetable
         </button>
       </div>
     </div>
@@ -89,7 +89,7 @@ async function generateTimetable() {
   if (!confirm('This will replace any existing draft timetable. Continue?')) return;
   const statusDiv = document.getElementById('timetable-status');
   statusDiv.className = 'ttv-alert ttv-alert-info';
-  statusDiv.innerHTML = '<i class="bi bi-hourglass-split"></i> Generating timetable...';
+  statusDiv.innerHTML = '<i data-lucide="circle"></i> Generating timetable...';
   statusDiv.style.display = 'block';
 
   try {
@@ -97,15 +97,15 @@ async function generateTimetable() {
     const data = await res.json();
     if (data.success) {
       statusDiv.className = 'ttv-alert ttv-alert-success';
-      statusDiv.innerHTML = '<i class="bi bi-check-circle"></i> ' + data.message + ' (' + data.conflictsResolved + ' conflicts resolved during generation)';
+      statusDiv.innerHTML = '<i data-lucide="check-circle"></i> ' + data.message + ' (' + data.conflictsResolved + ' conflicts resolved during generation)';
       setTimeout(() => location.reload(), 1500);
     } else {
       statusDiv.className = 'ttv-alert ttv-alert-error';
-      statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> ' + (data.message || data.error);
+      statusDiv.innerHTML = '<i data-lucide="x-circle"></i> ' + (data.message || data.error);
     }
   } catch {
     statusDiv.className = 'ttv-alert ttv-alert-error';
-    statusDiv.innerHTML = '<i class="bi bi-x-circle"></i> Network error';
+    statusDiv.innerHTML = '<i data-lucide="x-circle"></i> Network error';
   }
 }
 
